@@ -9,6 +9,7 @@ let noBalls = 3;
 function setup() {
   createCanvas(450, 800);
   prepareBoard();
+  print('Welcome to Plinko!')
   print(`Number of balls left: ${noBalls}`);
 }
 
