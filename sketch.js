@@ -9,19 +9,14 @@ let noBalls = 3;
 function setup() {
   createCanvas(450, 800);
   prepareBoard();
-  print('Welcome to Plinko!')
-  print(`Number of balls left: ${noBalls}`);
 }
 
 function draw() {
   background(200);
   
   // Draw Plinko ball or display "Game over" message
-  if(noBalls > 0){
+  if(noBalls >= 0){
     ball.drawCircle();
-  } else if(noBalls == 0) {
-    print(`Game over. Your final score was: ${score}`);
-    noBalls -= 1;
   }
   
   // Display bucket separators (8 score buckets of equal size)
@@ -31,25 +26,17 @@ function draw() {
     let lineX = i * (width / 9);
     line(lineX, height - 25, lineX, height);
   }
-  
-  // Display bucket scores
-  for(let i=0; i<5; i++){
-    noStroke();
-    textAlign(CENTER);
-    text(`+${pow(2,i)*10}`, (2*width*i+width)/18, 775);
-    if(i<4){
-      textAlign(CENTER);
-      text(`+${pow(2,i)*10}`, width - (2*width*i+width)/18, 775);
-    }
-  }
 
   // Display board pegs
   for(let i=0; i<boardBalls.length; i++){
     boardBalls[i].drawCircle();
   }
   
+  // Display the score
+  display(noBalls, score);
+  
   // Drop the ball
-  if(dropped && noBalls > 0){
+  if(dropped && noBalls >= 0){
     ball.moveCircle();
     ball.checkBoundaries();
   }
@@ -97,46 +84,85 @@ function draw() {
     }
     
     // Set status to undropped and reset location of the Plinko ball
-    resetPlinko(ball);
-    
-    print(`Your score: ${score}`);
+    if(noBalls => 0){
+      resetPlinko(ball);
+      if(noBalls == 0){
+        noBalls -= 1;
+      }
+    }
   }
 }
 
+/*
+    Section of keyboard and mouse reactive functions
+*/
 // React to key press of 'r'
 function keyPressed(){
-  if(keyCode === 82){
+  if(keyCode === 82 && noBalls >= 0){
     resetPlinko(ball);
     noBalls += 1;
-    print(`Number of balls left: ${noBalls}`);
   }
 }
 
 // Show undropped Plinko ball following the X value of the mouse in boundaries
 function mouseMoved(){
-  if(!dropped && noBalls > 0){
+  if(!dropped && noBalls > 0 && ball){
     ball.setX(mouseX);
     ball.drawCircle();
     ball.checkBoundaries();
   }
 }
 
+// Drop the undropped ball
+function mouseClicked(){
+  if(!dropped && noBalls > 0){
+    dropped = true;
+    noBalls -= 1;
+  }
+}
+
+/*
+    Functions used in specifically in sketch
+*/
+// Display score and bucket scores;
+function display(noBalls, score){
+  if(noBalls >= 0){
+    noStroke();
+    textAlign(LEFT, CENTER);
+    textSize(20);
+    fill([0, 0, 0]);
+    let scoreLiteral = 
+        `Number of balls left: ${noBalls}
+Your score: ${score}`
+    text(scoreLiteral, 10, 50);
+
+    // Display bucket scores
+    textAlign(CENTER);
+    textSize(15);
+    fill([255, 0, 0]);
+    for(let i=0; i<5; i++){
+      text(`+${pow(2,i)*10}`, (2*width*i+width)/18, 775);
+      if(i<4){
+        text(`+${pow(2,i)*10}`, width - (2*width*i+width)/18, 775);
+      }
+    }
+  } else if (noBalls < 0){
+    stroke('black');
+    textAlign(CENTER, CENTER);
+    textSize(35);
+    fill([255, 255, 255]);
+    text(`Game over!
+Your final score was: ${score}`, width/2, height/2);
+  }
+}
+
 // Reset Plinko ball to top of the board
 function resetPlinko(ball){
-  noBalls -= 1;
   dropped = false;
   ball.setX(width/2);
   ball.setY(50);
   ball.setDx(0);
   ball.setDy(0);
-}
-
-// Drop the undropped ball
-function mouseClicked(){
-  if(!dropped && noBalls > 0){
-    print(`Number of balls left: ${noBalls-1}`);
-    dropped = true;
-  }
 }
 
 // Push ball elements (invisible separators, Plinko ball and board pegs) to their designated lists
@@ -148,21 +174,26 @@ function prepareBoard(){
   
   ball = new PBall(width / 2, 50, 15, [255, 0, 0]);
   
-  for (let i=0; i<17; i++){
+  let pegScale = 13;// Must be odd
+  let pegRad = 10;
+  let levelSpace = 50;
+  let startLevel = 150;
+  
+  for (let i=0; i<pegScale; i++){
     if(i%2 == 1){
-      boardBalls.push(new Ball((width/16) * i, 200, 10, [0, 0, 0]));
-      boardBalls.push(new Ball((width/16) * i, 300, 10, [0, 0, 0]));
-      boardBalls.push(new Ball((width/16) * i, 400, 10, [0, 0, 0]));
-      boardBalls.push(new Ball((width/16) * i, 500, 10, [0, 0, 0]));
-      boardBalls.push(new Ball((width/16) * i, 600, 10, [0, 0, 0]));
-      boardBalls.push(new Ball((width/16) * i, 700, 10, [0, 0, 0]));
+      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (1 * levelSpace), pegRad, [0, 0, 0]));
+      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (3 * levelSpace), pegRad, [0, 0, 0]));
+      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (5 * levelSpace), pegRad, [0, 0, 0]));
+      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (7 * levelSpace), pegRad, [0, 0, 0]));
+      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (9 * levelSpace), pegRad, [0, 0, 0]));
+      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (11 * levelSpace), pegRad, [0, 0, 0]));
     } else if(i%2 == 0){
-      boardBalls.push(new Ball((width/16) * i, 150, 10, [0, 0, 0]));
-      boardBalls.push(new Ball((width/16) * i, 250, 10, [0, 0, 0]));
-      boardBalls.push(new Ball((width/16) * i, 350, 10, [0, 0, 0]));
-      boardBalls.push(new Ball((width/16) * i, 450, 10, [0, 0, 0]));
-      boardBalls.push(new Ball((width/16) * i, 550, 10, [0, 0, 0]));
-      boardBalls.push(new Ball((width/16) * i, 650, 10, [0, 0, 0]));
+      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel, pegRad, [0, 0, 0]));
+      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (2 * levelSpace), pegRad, [0, 0, 0]));
+      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (4 * levelSpace), pegRad, [0, 0, 0]));
+      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (6 * levelSpace), pegRad, [0, 0, 0]));
+      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (8 * levelSpace), pegRad, [0, 0, 0]));
+      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (10 * levelSpace), pegRad, [0, 0, 0]));
     }
   }
 }
