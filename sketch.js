@@ -1,10 +1,13 @@
+// Format variables
+let borderSpacing = 25;
+
 let boardBalls = [];
 let ballBase = [];
 let ball;
 let dropped = false;
 let score = 0;
 let noBalls = 5;
-let noBuckets = 5;    // Must be an odd number (currently)
+let noBuckets = 9;    // Must be less than 13 (size of ball exceeds bucket size)
 
 // Standard setup and board preparation (pushing pegs and boundary lines)
 function setup() {
@@ -25,7 +28,7 @@ function draw() {
     stroke(0);
     strokeWeight(2);
     let lineX = i * (width / noBuckets);
-    line(lineX, height - 25, lineX, height);
+    line(lineX, height - borderSpacing, lineX, height);
   }
 
   // Display board pegs
@@ -89,11 +92,17 @@ function draw() {
 /*
     Section of keyboard and mouse reactive functions
 */
-// React to key press of 'r'
 function keyPressed(){
+  // React to key press of 'r' to reset
   if(keyCode === 82 && noBalls >= 0){
     resetPlinko(ball);
     noBalls += 1;
+  }
+
+  // React to key press of 'space' to drop an undropped ball
+  if(keyCode === 32 && !dropped && noBalls > 0){
+    dropped = true;
+    noBalls -= 1;
   }
 }
 
@@ -103,14 +112,6 @@ function mouseMoved(){
     ball.setX(mouseX);
     ball.drawCircle();
     ball.checkBoundaries();
-  }
-}
-
-// Drop the undropped ball
-function mouseClicked(){
-  if(!dropped && noBalls > 0){
-    dropped = true;
-    noBalls -= 1;
   }
 }
 
@@ -135,9 +136,11 @@ Your score: ${score}`
     fill([255, 0, 0]);
     let halfBuckets = ceil(noBuckets/2)
     for(let i=0; i<halfBuckets; i++){
-      text(`+${pow(2,i)*10}`, (2*width*i+width)/(noBuckets*2), 775);
-      if(i<halfBuckets-1){
-        text(`+${pow(2,i)*10}`, width - (2*width*i+width)/(noBuckets*2), 775);
+      let lowerX = (2*width*i+width)/(noBuckets*2);
+      let upperX = width - (2*width*i+width)/(noBuckets*2);
+      text(`+${pow(2,i)*10}`, lowerX, height-borderSpacing);
+      if(upperX != lowerX){
+        text(`+${pow(2,i)*10}`, upperX, height-borderSpacing);
       }
     }
   } else if (noBalls < 0){
@@ -154,7 +157,7 @@ Your final score was: ${score}`, width/2, height/2);
 function resetPlinko(ball){
   dropped = false;
   ball.setX(width/2);
-  ball.setY(50);
+  ball.setY(borderSpacing * 2);
   ball.setDx(0);
   ball.setDy(0);
 }
@@ -162,11 +165,11 @@ function resetPlinko(ball){
 // Push ball elements (invisible separators, Plinko ball and board pegs) to their designated lists
 function prepareBoard(){
   for(let i = 1; i < noBuckets; i++){
-    ballBase.push(new Ball(i * (width / noBuckets), height-25, 1, [0, 0, 0]));
-    ballBase.push(new Ball(i * (width / noBuckets), height-12, 1, [0, 0, 0]));
+    ballBase.push(new Ball(i * (width / noBuckets), height-borderSpacing, 1, [0, 0, 0]));
+    ballBase.push(new Ball(i * (width / noBuckets), height-floor(borderSpacing/2), 1, [0, 0, 0]));
   }
   
-  ball = new PBall(width / 2, 50, 15, [255, 0, 0]);
+  ball = new PBall(width / 2, borderSpacing * 2, 15, [255, 0, 0]);
   
   let pegScale = 13;    // Must be odd
   let pegRad = 10;
