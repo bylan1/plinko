@@ -128,7 +128,7 @@ function display(noBalls, score){
     let scoreLiteral = 
         `Number of balls left: ${noBalls}
 Your score: ${score}`
-    text(scoreLiteral, 10, 50);
+    text(scoreLiteral, 10, borderSpacing * 2);
 
     // Display bucket scores
     textAlign(CENTER);
