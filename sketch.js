@@ -3,7 +3,7 @@ let ballBase = [];
 let ball;
 let dropped = false;
 let score = 0;
-let noBalls = 3;
+let noBalls = 5;
 
 // Standard setup and board preparation (pushing pegs and boundary lines)
 function setup() {

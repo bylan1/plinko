@@ -1,5 +1,5 @@
 class PBall {
-  constructor(x, y, rad, colour, dx = 0, dy = 0){
+  constructor(x, y, rad, colour, gravity = 0.5, dx = 0, dy = 0){
     this.x = x;
     this.y = y;
     this.dx = dx;
@@ -7,7 +7,7 @@ class PBall {
     this.rad = rad;
     this.mass = PI * sq(rad);
     this.colour = colour;
-    this.gravity = 0.5;
+    this.gravity = gravity;
   }
   
   drawCircle(){
