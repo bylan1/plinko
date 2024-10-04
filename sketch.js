@@ -1,7 +1,7 @@
 // Format variables
 let borderSpacing = 25;
 
-let boardBalls = [];
+let boardPegs = [];
 let ballBase = [];
 let ball;
 let dropped = false;
@@ -32,8 +32,8 @@ function draw() {
   }
 
   // Display board pegs
-  for(let i=0; i<boardBalls.length; i++){
-    boardBalls[i].drawCircle();
+  for(let i=0; i<boardPegs.length; i++){
+    boardPegs[i].drawCircle();
   }
   
   // Display the score
@@ -55,8 +55,8 @@ function draw() {
   }
   
   // React to collisions with Plinko ball and board pegs
-  for(let i=0; i<boardBalls.length; i++){
-    env = new CollisionEnv(ball, boardBalls[i]);
+  for(let i=0; i<boardPegs.length; i++){
+    env = new CollisionEnv(ball, boardPegs[i]);
     
     if(env.collisionDetection()){
       env.collisionReaction();
@@ -68,7 +68,7 @@ function draw() {
     let ballX = ball.getX();
     let scoreEdge = width / noBuckets;
     
-    // For loop adding score depending on which bucket landed in (within which y range)
+    // For loop adding score depending on which bucket landed in (within which x range)
     for(let i=0; i<ceil(noBuckets/2); i++){
       let lowerEdge1 = scoreEdge * i;
       let lowerEdge2 = lowerEdge1 + scoreEdge;
@@ -80,7 +80,7 @@ function draw() {
     }
     
     // Set status to undropped and reset location of the Plinko ball
-    if(noBalls => 0){
+    if(noBalls >= 0){
       resetPlinko(ball);
       if(noBalls == 0){
         noBalls -= 1;
@@ -138,9 +138,9 @@ Your score: ${score}`
     for(let i=0; i<halfBuckets; i++){
       let lowerX = (2*width*i+width)/(noBuckets*2);
       let upperX = width - (2*width*i+width)/(noBuckets*2);
-      text(`+${pow(2,i)*10}`, lowerX, height-borderSpacing);
+      text(`+${10 * (2**i)}`, lowerX, height-borderSpacing);
       if(upperX != lowerX){
-        text(`+${pow(2,i)*10}`, upperX, height-borderSpacing);
+        text(`+${10 * (2**i)}`, upperX, height-borderSpacing);
       }
     }
   } else if (noBalls < 0){
@@ -164,33 +164,36 @@ function resetPlinko(ball){
 
 // Push ball elements (invisible separators, Plinko ball and board pegs) to their designated lists
 function prepareBoard(){
+  // For loop to push all invisible separators of the score buckets
   for(let i = 1; i < noBuckets; i++){
     ballBase.push(new Ball(i * (width / noBuckets), height-borderSpacing, 1, [0, 0, 0]));
     ballBase.push(new Ball(i * (width / noBuckets), height-floor(borderSpacing/2), 1, [0, 0, 0]));
   }
   
+  // Create the single playable ball
   ball = new PBall(width / 2, borderSpacing * 2, 15, [255, 0, 0]);
   
-  let pegScale = 13;    // Must be odd
+  // Define the space and parameters for the Plinko board pegs and push all pegs to the boardPegs array
+  let lowerX = 150;
+  let upperX = 700;
+  let noLayers = 10;
+  let noPegs = 7;
   let pegRad = 10;
-  let levelSpace = 50;
-  let startLevel = 150;
+  let colour = [0, 0, 0];
   
-  for (let i=0; i<pegScale; i++){
-    if(i%2 == 1){
-      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (1 * levelSpace), pegRad, [0, 0, 0]));
-      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (3 * levelSpace), pegRad, [0, 0, 0]));
-      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (5 * levelSpace), pegRad, [0, 0, 0]));
-      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (7 * levelSpace), pegRad, [0, 0, 0]));
-      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (9 * levelSpace), pegRad, [0, 0, 0]));
-      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (11 * levelSpace), pegRad, [0, 0, 0]));
-    } else if(i%2 == 0){
-      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel, pegRad, [0, 0, 0]));
-      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (2 * levelSpace), pegRad, [0, 0, 0]));
-      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (4 * levelSpace), pegRad, [0, 0, 0]));
-      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (6 * levelSpace), pegRad, [0, 0, 0]));
-      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (8 * levelSpace), pegRad, [0, 0, 0]));
-      boardBalls.push(new Ball((width/(pegScale - 1)) * i, startLevel + (10 * levelSpace), pegRad, [0, 0, 0]));
+  let ySpacing = (upperX - lowerX)/noLayers;
+  let xSpacing = width/(noPegs-1);
+
+  for (let i=0; i<noLayers; i++){
+    for (let j=0; j<noPegs; j++){
+      let x = xSpacing * j;
+      let y = lowerX + (i * ySpacing);
+
+      if (i % 2 === 1) {
+        x += xSpacing / 2;
+      }
+
+      boardPegs.push(new Ball(x, y, pegRad, colour));
     }
   }
 }
