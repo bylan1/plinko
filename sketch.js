@@ -1,13 +1,16 @@
 // Format variables
 let borderSpacing = 25;
 
-let boardPegs = [];
-let ballBase = [];
-let ball;
+// Base variables
 let dropped = false;
 let score = 0;
 let noBalls = 5;
 let noBuckets = 9;    // Must be less than 13 (size of ball exceeds bucket size)
+
+// Arrays of elements
+let boardPegs = [];
+let ballBase = [];
+let ball;
 
 // Standard setup and board preparation (pushing pegs and boundary lines)
 function setup() {
