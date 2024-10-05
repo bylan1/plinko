@@ -2,15 +2,18 @@
 let borderSpacing = 25;
 
 // Base variables
-let dropped = false;
 let score = 0;
 let noBalls = 5;
+let index = 0;
 let noBuckets = 9;    // Must be less than 13 (size of ball exceeds bucket size)
+const gameBalls = noBalls;
 
 // Arrays of elements
 let boardPegs = [];
 let ballBase = [];
-let ball;
+let balls = [];
+let tempBall;
+let dropped = [];
 
 // Standard setup and board preparation (pushing pegs and boundary lines)
 function setup() {
@@ -20,12 +23,7 @@ function setup() {
 
 function draw() {
   background(200);
-  
-  // Draw Plinko ball or display "Game over" message
-  if(noBalls >= 0){
-    ball.drawCircle();
-  }
-  
+
   // Display bucket separators (8 score buckets of equal size)
   for(let i=1; i<noBuckets; i++){
     stroke(0);
@@ -38,54 +36,64 @@ function draw() {
   for(let i=0; i<boardPegs.length; i++){
     boardPegs[i].drawCircle();
   }
-  
-  // Display the score
-  display(noBalls, score);
-  
-  // Drop the ball
-  if(dropped && noBalls >= 0){
-    ball.moveCircle();
-    ball.checkBoundaries();
-  }
 
-  // React to collisions with Plinko ball and bucket separators (invisible balls at lines)
-  for(let i=0; i<ballBase.length; i++){
-    bounceEnv = new CollisionEnv(ball, ballBase[i]);
-    
-    if(bounceEnv.collisionDetection()){
-      bounceEnv.collisionReaction();
-    }
+  if(balls.length < gameBalls){
+    addBall();
   }
   
-  // React to collisions with Plinko ball and board pegs
-  for(let i=0; i<boardPegs.length; i++){
-    env = new CollisionEnv(ball, boardPegs[i]);
-    
-    if(env.collisionDetection()){
-      env.collisionReaction();
+  for (const [ind, ball] of balls.entries()){
+    // Draw Plinko ball or display "Game over" message
+    if(noBalls >= 0){
+      ball.drawCircle();
     }
-  }
-  
-  // Complete Plinko section, add to score and reset Plinko ball
-  if(ball.getY() >= height){
-    let ballX = ball.getX();
-    let scoreEdge = width / noBuckets;
+
+    // Display the score
+    display(noBalls, score);
     
-    // For loop adding score depending on which bucket landed in (within which x range)
-    for(let i=0; i<ceil(noBuckets/2); i++){
-      let lowerEdge1 = scoreEdge * i;
-      let lowerEdge2 = lowerEdge1 + scoreEdge;
-      let upperEdge1 = width - scoreEdge * i;
-      let upperEdge2 = upperEdge1 - scoreEdge;
-      if((ballX > lowerEdge1 && ballX < lowerEdge2) || (ballX > upperEdge2 && ballX < upperEdge1)){
-        score += (10 * (2**i));
+    // Drop the ball
+    if(dropped[ind] && noBalls >= 0){
+      ball.moveCircle();
+      ball.checkBoundaries();
+    }
+
+    // React to collisions with Plinko ball and board pegs
+    for(let i=0; i<boardPegs.length; i++){
+      env = new CollisionEnv(ball, boardPegs[i]);
+      
+      if(env.collisionDetection()){
+        env.collisionReaction();
+      }
+    }
+
+    // React to collisions with Plinko ball and bucket separators (invisible balls at lines)
+    for(let i=0; i<ballBase.length; i++){
+      bounceEnv = new CollisionEnv(ball, ballBase[i]);
+      
+      if(bounceEnv.collisionDetection()){
+        bounceEnv.collisionReaction();
       }
     }
     
-    // Set status to undropped and reset location of the Plinko ball
-    if(noBalls >= 0){
-      resetPlinko(ball);
-      if(noBalls == 0){
+    // Complete Plinko section, add to score and reset Plinko ball
+    if(ball.getY() >= height){
+      let ballX = ball.getX();
+      let scoreEdge = width / noBuckets;
+      
+      // For loop adding score depending on which bucket landed in (within which x range)
+      for(let i=0; i<ceil(noBuckets/2); i++){
+        let lowerEdge1 = scoreEdge * i;
+        let lowerEdge2 = lowerEdge1 + scoreEdge;
+        let upperEdge1 = width - scoreEdge * i;
+        let upperEdge2 = upperEdge1 - scoreEdge;
+        if((ballX > lowerEdge1 && ballX < lowerEdge2) || (ballX > upperEdge2 && ballX < upperEdge1)){
+          score += (10 * (2**i));
+          balls.splice(ind, 1);
+          dropped.splice(ind, 1);
+        }
+      }
+      
+      // Change this when using multiple ball dropping
+      if(noBalls == 0 && gameBalls == index - 1){
         noBalls -= 1;
       }
     }
@@ -98,29 +106,46 @@ function draw() {
 function keyPressed(){
   // React to key press of 'r' to reset
   if(keyCode === 82 && noBalls >= 0){
-    resetPlinko(ball);
+    resetPlinko(balls[index]);
     noBalls += 1;
   }
 
   // React to key press of 'space' to drop an undropped ball
-  if(keyCode === 32 && !dropped && noBalls > 0){
-    dropped = true;
+  if(keyCode === 32 && !dropped[index] && noBalls > 0){
+    dropped[index] = true;
+    index += 1;
     noBalls -= 1;
   }
 }
 
 // Show undropped Plinko ball following the X value of the mouse in boundaries
 function mouseMoved(){
-  if(!dropped && noBalls > 0 && ball){
-    ball.setX(mouseX);
-    ball.drawCircle();
-    ball.checkBoundaries();
+  if(!dropped[index] && noBalls > 0 && balls[index]){
+    balls[index].setX(mouseX);
+    balls[index].drawCircle();
+    balls[index].checkBoundaries();
   }
 }
 
 /*
     Functions used in specifically in sketch
 */
+function addBall(){
+  dropped.push(false);
+  tempBall = new PBall(balls[index].getX(), borderSpacing * 2, 15, [255, 0, 0]);
+  balls.push(tempBall);
+  tempBall = 0;
+}
+
+// Reset Plinko ball to top of the board
+function resetPlinko(ball){
+  dropped[index] = false;
+  ball.setX(width/2);
+  ball.setY(borderSpacing * 2);
+  ball.setDx(0);
+  ball.setDy(0);
+}
+
 // Display score and bucket scores;
 function display(noBalls, score){
   if(noBalls >= 0){
@@ -130,8 +155,12 @@ function display(noBalls, score){
     fill([0, 0, 0]);
     let scoreLiteral = 
         `Number of balls left: ${noBalls}
-Your score: ${score}`
-    text(scoreLiteral, 10, borderSpacing * 2);
+Your score: ${score}
+Variables
+Index: ${index}
+GameBalls: ${gameBalls}
+Dropped[index-1]: ${dropped[index-1]}`
+    text(scoreLiteral, 10, borderSpacing * 3);
 
     // Display bucket scores
     textAlign(CENTER);
@@ -156,15 +185,6 @@ Your final score was: ${score}`, width/2, height/2);
   }
 }
 
-// Reset Plinko ball to top of the board
-function resetPlinko(ball){
-  dropped = false;
-  ball.setX(width/2);
-  ball.setY(borderSpacing * 2);
-  ball.setDx(0);
-  ball.setDy(0);
-}
-
 // Push ball elements (invisible separators, Plinko ball and board pegs) to their designated lists
 function prepareBoard(){
   // For loop to push all invisible separators of the score buckets
@@ -174,7 +194,10 @@ function prepareBoard(){
   }
   
   // Create the single playable ball
-  ball = new PBall(width / 2, borderSpacing * 2, 15, [255, 0, 0]);
+  tempBall = new PBall(width / 2, borderSpacing * 2, 15, [255, 0, 0]);
+  balls.push(tempBall);
+  tempBall = 0;
+  dropped.push(false);
   
   // Define the space and parameters for the Plinko board pegs and push all pegs to the boardPegs array
   let lowerX = 150;
