@@ -112,22 +112,27 @@ function keyPressed(){
   }
 
   // React to key press of 'space' to drop an undropped ball
-  if(keyCode === 32 && !dropped[index] && noBalls > 0){
+  if(keyCode === 32 && !dropped[index] && noBalls > 0 && ballPrice < balance){
     dropped[index] = true;
     noBalls -= 1;
     index += 1;
+    balance -= ballPrice;
     
-    if(noBalls > 0 ){
+    if(noBalls > 0){
       addBall();
     }
   }
 
   if(keyCode === 187 && noBalls > 0 && ballPrice < balance){
     ballPrice += 10;
+    prices.pop();
+    prices.push(ballPrice);
   }
 
-  if(keyCode === 189 && noBalls > 0 && ballPrice > 0){
+  if(keyCode === 189 && noBalls > 0 && ballPrice > 10){
     ballPrice -= 10;
+    rices.pop();
+    prices.push(ballPrice);
   }
 }
 
@@ -169,9 +174,9 @@ function display(noBalls, balance){
     fill([0, 0, 0]);
     let GUILiteral = 
         `Number of balls left: ${noBalls}
-Your balance: ${balance}
+Your balance: $${balance}
 Index: ${index}
-Price: $${prices[index]}`
+Price: $${ballPrice}`
     text(GUILiteral, 10, borderSpacing * 3);
 
     // Display bucket multipliers
@@ -193,7 +198,7 @@ Price: $${prices[index]}`
     textSize(35);
     fill([255, 255, 255]);
     text(`Game over!
-Your final score was: ${balance}`, width/2, height/2);
+Your final balance was: $${balance}`, width/2, height/2);
   }
 }
 
