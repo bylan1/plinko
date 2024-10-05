@@ -2,11 +2,11 @@
 let borderSpacing = 25;
 
 // Base variables
-let score = 0;
+let balance = 100;
 let noBalls = 5;
 let index = 0;
 let noBuckets = 9;    // Must be less than 13 (size of ball exceeds bucket size)
-const gameBalls = noBalls;
+let ballPrice = 10;
 
 // Arrays of elements
 let boardPegs = [];
@@ -14,6 +14,7 @@ let ballBase = [];
 let balls = [];
 let tempBall;
 let dropped = [];
+let prices = [];
 
 // Standard setup and board preparation (pushing pegs and boundary lines)
 function setup() {
@@ -24,7 +25,7 @@ function setup() {
 function draw() {
   background(200);
 
-  // Display bucket separators (8 score buckets of equal size)
+  // Display bucket separators (8 multiplier buckets of equal size)
   for(let i=1; i<noBuckets; i++){
     stroke(0);
     strokeWeight(2);
@@ -36,19 +37,12 @@ function draw() {
   for(let i=0; i<boardPegs.length; i++){
     boardPegs[i].drawCircle();
   }
-
-  if(balls.length < gameBalls){
-    addBall();
-  }
   
   for (const [ind, ball] of balls.entries()){
     // Draw Plinko ball or display "Game over" message
     if(noBalls >= 0){
       ball.drawCircle();
     }
-
-    // Display the score
-    display(noBalls, score);
     
     // Drop the ball
     if(dropped[ind] && noBalls >= 0){
@@ -74,29 +68,36 @@ function draw() {
       }
     }
     
-    // Complete Plinko section, add to score and reset Plinko ball
+    // Complete Plinko section, add multiplier to balance and reset Plinko ball
     if(ball.getY() >= height){
       let ballX = ball.getX();
-      let scoreEdge = width / noBuckets;
+      let bucketEdge = width / noBuckets;
       
-      // For loop adding score depending on which bucket landed in (within which x range)
+      // For loop adding profit depending on which bucket landed in (within which x range)
       for(let i=0; i<ceil(noBuckets/2); i++){
-        let lowerEdge1 = scoreEdge * i;
-        let lowerEdge2 = lowerEdge1 + scoreEdge;
-        let upperEdge1 = width - scoreEdge * i;
-        let upperEdge2 = upperEdge1 - scoreEdge;
+        let lowerEdge1 = bucketEdge * i;
+        let lowerEdge2 = lowerEdge1 + bucketEdge;
+        let upperEdge1 = width - bucketEdge * i;
+        let upperEdge2 = upperEdge1 - bucketEdge;
         if((ballX > lowerEdge1 && ballX < lowerEdge2) || (ballX > upperEdge2 && ballX < upperEdge1)){
-          score += (10 * (2**i));
+          balance += (prices[ind] * 2**(i-2));
           balls.splice(ind, 1);
           dropped.splice(ind, 1);
+          prices.splice(ind, 1);
+          break;
         }
       }
-      
-      // Change this when using multiple ball dropping
-      if(noBalls == 0 && gameBalls == index - 1){
-        noBalls -= 1;
-      }
+
+      index -= 1;
     }
+  }
+
+  // Display the balance (display GUI after due to balls array)
+  display(noBalls, balance);
+
+  // Change this when using multiple ball dropping
+  if(noBalls == 0 && index == 0){
+    noBalls -= 1;
   }
 }
 
@@ -113,8 +114,20 @@ function keyPressed(){
   // React to key press of 'space' to drop an undropped ball
   if(keyCode === 32 && !dropped[index] && noBalls > 0){
     dropped[index] = true;
-    index += 1;
     noBalls -= 1;
+    index += 1;
+    
+    if(noBalls > 0 ){
+      addBall();
+    }
+  }
+
+  if(keyCode === 187 && noBalls > 0 && ballPrice < balance){
+    ballPrice += 10;
+  }
+
+  if(keyCode === 189 && noBalls > 0 && ballPrice > 0){
+    ballPrice -= 10;
   }
 }
 
@@ -132,7 +145,8 @@ function mouseMoved(){
 */
 function addBall(){
   dropped.push(false);
-  tempBall = new PBall(balls[index].getX(), borderSpacing * 2, 15, [255, 0, 0]);
+  prices.push(ballPrice);
+  tempBall = new PBall(balls[index-1].getX(), borderSpacing * 2, 15, [255, 0, 0]);
   balls.push(tempBall);
   tempBall = 0;
 }
@@ -146,23 +160,21 @@ function resetPlinko(ball){
   ball.setDy(0);
 }
 
-// Display score and bucket scores;
-function display(noBalls, score){
+// Display balance and bucket multipliers;
+function display(noBalls, balance){
   if(noBalls >= 0){
     noStroke();
     textAlign(LEFT, CENTER);
     textSize(20);
     fill([0, 0, 0]);
-    let scoreLiteral = 
+    let GUILiteral = 
         `Number of balls left: ${noBalls}
-Your score: ${score}
-Variables
+Your balance: ${balance}
 Index: ${index}
-GameBalls: ${gameBalls}
-Dropped[index-1]: ${dropped[index-1]}`
-    text(scoreLiteral, 10, borderSpacing * 3);
+Price: $${prices[index]}`
+    text(GUILiteral, 10, borderSpacing * 3);
 
-    // Display bucket scores
+    // Display bucket multipliers
     textAlign(CENTER);
     textSize(15);
     fill([255, 0, 0]);
@@ -170,9 +182,9 @@ Dropped[index-1]: ${dropped[index-1]}`
     for(let i=0; i<halfBuckets; i++){
       let lowerX = (2*width*i+width)/(noBuckets*2);
       let upperX = width - (2*width*i+width)/(noBuckets*2);
-      text(`+${10 * (2**i)}`, lowerX, height-borderSpacing);
+      text(`${(2**(i-2))}x`, lowerX, height-borderSpacing);
       if(upperX != lowerX){
-        text(`+${10 * (2**i)}`, upperX, height-borderSpacing);
+        text(`${(2**(i-2))}x`, upperX, height-borderSpacing);
       }
     }
   } else if (noBalls < 0){
@@ -181,13 +193,13 @@ Dropped[index-1]: ${dropped[index-1]}`
     textSize(35);
     fill([255, 255, 255]);
     text(`Game over!
-Your final score was: ${score}`, width/2, height/2);
+Your final score was: ${balance}`, width/2, height/2);
   }
 }
 
 // Push ball elements (invisible separators, Plinko ball and board pegs) to their designated lists
 function prepareBoard(){
-  // For loop to push all invisible separators of the score buckets
+  // For loop to push all invisible separators of the multiplier buckets
   for(let i = 1; i < noBuckets; i++){
     ballBase.push(new Ball(i * (width / noBuckets), height-borderSpacing, 1, [0, 0, 0]));
     ballBase.push(new Ball(i * (width / noBuckets), height-floor(borderSpacing/2), 1, [0, 0, 0]));
@@ -198,6 +210,7 @@ function prepareBoard(){
   balls.push(tempBall);
   tempBall = 0;
   dropped.push(false);
+  prices.push(ballPrice);
   
   // Define the space and parameters for the Plinko board pegs and push all pegs to the boardPegs array
   let lowerX = 150;
