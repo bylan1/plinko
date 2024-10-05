@@ -8,6 +8,10 @@ let index = 0;
 let noBuckets = 9;    // Must be less than 13 (size of ball exceeds bucket size)
 let ballPrice = 10;
 
+// Accelerate or decelerate +/- operations
+// let baseInterval = 30;
+// let speedUpFactor = 0.95;
+
 // Arrays of elements
 let boardPegs = [];
 let ballBase = [];
@@ -37,6 +41,17 @@ function draw() {
   for(let i=0; i<boardPegs.length; i++){
     boardPegs[i].drawCircle();
   }
+
+  // Work on in the future
+  // if (keyIsDown(187) && noBalls > 0 && ballPrice < balance){
+  //   let interval = baseInterval * pow(speedUpFactor, frameCount / 60);
+
+  //   // Perform the action only at certain intervals
+  //   if (frameCount % int(interval) === 0) {
+  //     ballPrice += 10;
+  //     prices[index] += 10;
+  //   }
+  // }
   
   for (const [ind, ball] of balls.entries()){
     // Draw Plinko ball or display "Game over" message
@@ -92,6 +107,11 @@ function draw() {
     }
   }
 
+  // Readjust the ballPrice to less than the balance
+  if(balance < ballPrice){
+    ballPrice = floor(balance / 10) * 10;
+  }
+
   // Display the balance (display GUI after due to balls array)
   display(noBalls, balance);
 
@@ -112,7 +132,7 @@ function keyPressed(){
   }
 
   // React to key press of 'space' to drop an undropped ball
-  if(keyCode === 32 && !dropped[index] && noBalls > 0 && ballPrice < balance){
+  if(keyCode === 32 && !dropped[index] && noBalls > 0 && ballPrice <= balance){
     dropped[index] = true;
     noBalls -= 1;
     index += 1;
@@ -123,7 +143,7 @@ function keyPressed(){
     }
   }
 
-  if(keyCode === 187 && noBalls > 0 && ballPrice < balance){
+  if(keyCode === 187 && noBalls > 0 && ballPrice <= (balance-10)){
     ballPrice += 10;
     prices.pop();
     prices.push(ballPrice);
@@ -131,7 +151,7 @@ function keyPressed(){
 
   if(keyCode === 189 && noBalls > 0 && ballPrice > 10){
     ballPrice -= 10;
-    rices.pop();
+    prices.pop();
     prices.push(ballPrice);
   }
 }
