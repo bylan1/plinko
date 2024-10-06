@@ -95,7 +95,7 @@ function draw() {
         let lowerEdge2 = lowerEdge1 + bucketEdge;
         let upperEdge1 = width - bucketEdge * i;
         let upperEdge2 = upperEdge1 - bucketEdge;
-        let lowExp = ceil(noBuckets/3);
+        let lowExp = floor(noBuckets/3) - 1;
         if((ballX > lowerEdge1 && ballX < lowerEdge2) || (ballX > upperEdge2 && ballX < upperEdge1)){
           balance += (prices[ind] * 2**(i-lowExp));
           balls.splice(ind, 1);
@@ -205,7 +205,7 @@ Price: $${ballPrice}`
     textSize(15);
     fill([255, 0, 0]);
     let halfBuckets = ceil(noBuckets/2)
-    let lowExp = ceil(noBuckets/3);
+    let lowExp = floor(noBuckets/3) - 1;
     for(let i=0; i<halfBuckets; i++){
       let lowerX = (2*width*i+width)/(noBuckets*2);
       let upperX = width - (2*width*i+width)/(noBuckets*2);
