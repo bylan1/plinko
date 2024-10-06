@@ -1,10 +1,11 @@
 // Format variables
-let borderSpacing = 25;
+const borderSpacing = 25;
+const startSpace = 150;
 
 // Base variables
 let balance = 100;
 let index = 0;
-let noBuckets = 9;    // Must be less than 13 (size of ball exceeds bucket size)
+const noBuckets = 15;
 let incrementer = 10;
 let ballPrice = incrementer;
 
@@ -22,7 +23,7 @@ let prices = [];
 
 // Standard setup and board preparation (pushing pegs and boundary lines)
 function setup() {
-  createCanvas(450, 800);
+  createCanvas(960, 960);
   prepareBoard();
 }
 
@@ -94,8 +95,9 @@ function draw() {
         let lowerEdge2 = lowerEdge1 + bucketEdge;
         let upperEdge1 = width - bucketEdge * i;
         let upperEdge2 = upperEdge1 - bucketEdge;
+        let lowExp = ceil(noBuckets/3);
         if((ballX > lowerEdge1 && ballX < lowerEdge2) || (ballX > upperEdge2 && ballX < upperEdge1)){
-          balance += (prices[ind] * 2**(i-2));
+          balance += (prices[ind] * 2**(i-lowExp));
           balls.splice(ind, 1);
           dropped.splice(ind, 1);
           prices.splice(ind, 1);
@@ -117,8 +119,11 @@ function draw() {
   // Display the balance (display GUI after due to balls array)
   display(index, balance);
 
-  if(balance == 0 && index == 0){
+  if(balance < 10 && index == 0){
     index -= 1;
+    balls.splice(0, balls.length);
+    dropped.splice(0, dropped.length);
+    prices.splice(0, prices.length);
   }
 }
 
@@ -184,7 +189,7 @@ function resetPlinko(ball){
 
 // Display balance and bucket multipliers;
 function display(index, balance){
-  if(balance >= 0){
+  if(index >= 0){
     noStroke();
     textAlign(LEFT, CENTER);
     textSize(20);
@@ -200,15 +205,16 @@ Price: $${ballPrice}`
     textSize(15);
     fill([255, 0, 0]);
     let halfBuckets = ceil(noBuckets/2)
+    let lowExp = ceil(noBuckets/3);
     for(let i=0; i<halfBuckets; i++){
       let lowerX = (2*width*i+width)/(noBuckets*2);
       let upperX = width - (2*width*i+width)/(noBuckets*2);
-      text(`${(2**(i-2))}x`, lowerX, height-borderSpacing);
+      text(`${(2**(i-lowExp))}x`, lowerX, height-borderSpacing);
       if(upperX != lowerX){
-        text(`${(2**(i-2))}x`, upperX, height-borderSpacing);
+        text(`${(2**(i-lowExp))}x`, upperX, height-borderSpacing);
       }
     }
-  } else if (balance < incrementer && index == 0){
+  } else if (balance < incrementer && index < 0){
     stroke('black');
     textAlign(CENTER, CENTER);
     textSize(35);
@@ -234,12 +240,12 @@ function prepareBoard(){
   prices.push(ballPrice);
   
   // Define the space and parameters for the Plinko board pegs and push all pegs to the boardPegs array
-  let lowerX = 150;
-  let upperX = 700;
-  let noLayers = 10;
-  let noPegs = 7;
-  let pegRad = 10;
-  let colour = [0, 0, 0];
+  const lowerX = startSpace;
+  const upperX = (2/3) * height + startSpace;
+  const noLayers = 11;
+  const noPegs = 13;
+  const pegRad = 10;
+  const colour = [0, 0, 0];
   
   let ySpacing = (upperX - lowerX)/noLayers;
   let xSpacing = width/(noPegs-1);
