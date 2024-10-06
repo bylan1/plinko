@@ -3,10 +3,10 @@ let borderSpacing = 25;
 
 // Base variables
 let balance = 100;
-let noBalls = 5;
 let index = 0;
 let noBuckets = 9;    // Must be less than 13 (size of ball exceeds bucket size)
-let ballPrice = 10;
+let incrementer = 10;
+let ballPrice = incrementer;
 
 // Accelerate or decelerate +/- operations
 // let baseInterval = 30;
@@ -55,12 +55,12 @@ function draw() {
   
   for (const [ind, ball] of balls.entries()){
     // Draw Plinko ball or display "Game over" message
-    if(noBalls >= 0){
+    if(balance >= 0){
       ball.drawCircle();
     }
     
     // Drop the ball
-    if(dropped[ind] && noBalls >= 0){
+    if(dropped[ind] && balance >= 0){
       ball.moveCircle();
       ball.checkBoundaries();
     }
@@ -109,15 +109,16 @@ function draw() {
 
   // Readjust the ballPrice to less than the balance
   if(balance < ballPrice){
-    ballPrice = floor(balance / 10) * 10;
+    ballPrice = floor(balance / incrementer) * incrementer;
+    prices.pop();
+    prices.push(ballPrice);
   }
 
   // Display the balance (display GUI after due to balls array)
-  display(noBalls, balance);
+  display(index, balance);
 
-  // Change this when using multiple ball dropping
-  if(noBalls == 0 && index == 0){
-    noBalls -= 1;
+  if(balance == 0 && index == 0){
+    index -= 1;
   }
 }
 
@@ -126,31 +127,27 @@ function draw() {
 */
 function keyPressed(){
   // React to key press of 'r' to reset
-  if(keyCode === 82 && noBalls >= 0){
+  if(keyCode === 82 && balance >= 0){
     resetPlinko(balls[index]);
-    noBalls += 1;
   }
 
   // React to key press of 'space' to drop an undropped ball
-  if(keyCode === 32 && !dropped[index] && noBalls > 0 && ballPrice <= balance){
+  if(keyCode === 32 && !dropped[index] && balance >= incrementer && ballPrice != 0){
     dropped[index] = true;
-    noBalls -= 1;
     index += 1;
     balance -= ballPrice;
     
-    if(noBalls > 0){
-      addBall();
-    }
+    addBall();
   }
 
-  if(keyCode === 187 && noBalls > 0 && ballPrice <= (balance-10)){
-    ballPrice += 10;
+  if(keyCode === 187 && ballPrice <= (balance-incrementer)){
+    ballPrice += incrementer;
     prices.pop();
     prices.push(ballPrice);
   }
 
-  if(keyCode === 189 && noBalls > 0 && ballPrice > 10){
-    ballPrice -= 10;
+  if(keyCode === 189 && ballPrice > incrementer){
+    ballPrice -= incrementer;
     prices.pop();
     prices.push(ballPrice);
   }
@@ -158,7 +155,7 @@ function keyPressed(){
 
 // Show undropped Plinko ball following the X value of the mouse in boundaries
 function mouseMoved(){
-  if(!dropped[index] && noBalls > 0 && balls[index]){
+  if(!dropped[index] && balls[index]){
     balls[index].setX(mouseX);
     balls[index].drawCircle();
     balls[index].checkBoundaries();
@@ -186,16 +183,15 @@ function resetPlinko(ball){
 }
 
 // Display balance and bucket multipliers;
-function display(noBalls, balance){
-  if(noBalls >= 0){
+function display(index, balance){
+  if(balance >= 0){
     noStroke();
     textAlign(LEFT, CENTER);
     textSize(20);
     fill([0, 0, 0]);
     let GUILiteral = 
-        `Number of balls left: ${noBalls}
+        `Number of balls in action: ${index}
 Your balance: $${balance}
-Index: ${index}
 Price: $${ballPrice}`
     text(GUILiteral, 10, borderSpacing * 3);
 
@@ -212,13 +208,13 @@ Price: $${ballPrice}`
         text(`${(2**(i-2))}x`, upperX, height-borderSpacing);
       }
     }
-  } else if (noBalls < 0){
+  } else if (balance < incrementer && index == 0){
     stroke('black');
     textAlign(CENTER, CENTER);
     textSize(35);
     fill([255, 255, 255]);
     text(`Game over!
-Your final balance was: $${balance}`, width/2, height/2);
+You ran out of money`, width/2, height/2);
   }
 }
 
