@@ -8,6 +8,7 @@ class PBall {
     this.mass = PI * sq(rad);
     this.colour = colour;
     this.gravity = gravity;
+    this.gStatus = true;
   }
   
   drawCircle(){
@@ -17,7 +18,7 @@ class PBall {
   }
   
   moveCircle(){
-    this.dy += this.gravity;
+    this.dy += this.gStatus ? this.gravity : 0;
     this.x += this.dx;
     this.y += this.dy;
   }
@@ -45,6 +46,10 @@ class PBall {
   
   getMass(){
     return this.mass;
+  }
+
+  setGrav(status){
+    this.gStatus = status;
   }
   
   getColour(){

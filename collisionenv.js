@@ -46,21 +46,21 @@ class CollisionEnv {
     let v1n = this.ball1.getDx() * normalX + this.ball1.getDy() * normalY; // Normal component
     let v1t = this.ball1.getDx() * tangentX + this.ball1.getDy() * tangentY; // Tangential component
 
-    // Ball 2
-    let v2n = 0; // Normal component
-    let v2t = 0; // Tangential component
-
     // Step 3: Use conservation of momentum to update the normal velocities
     let newV1n = -v1n;
     
     newV1n *= this.dampingFactor;
     v1t *= this.dampingFactor;
     
-    this.ball1.setDx(newV1n * normalX + v1t * tangentX);
+    if(abs(this.ball1.getX() - this.ball2.getX()) < 0.1 && this.ball2.getY() == this.ball1.getY() + this.ball1.getRad() + this.ball2.getRad() && this.ball1.getDx() == 0){
+      this.ball1.setDx((random(1) < 0.5 ? -1 : 1));
+    } else {
+      this.ball1.setDx(newV1n * normalX + v1t * tangentX);
     // + newV2n * normalX + v2t * tangentX
+    }
+    
     this.ball1.setDy(newV1n * normalY + v1t * tangentY);
     // + newV2n * normalY + v2t * tangentY
-    
   }
 
   collisionDetection() {

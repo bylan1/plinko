@@ -62,6 +62,11 @@ function draw() {
     
     // Drop the ball
     if(dropped[ind] && balance >= 0){
+      ball.setGrav(true);
+      ball.moveCircle();
+      ball.checkBoundaries();
+    } else if (balance >= 0){
+      ball.setGrav(false);
       ball.moveCircle();
       ball.checkBoundaries();
     }
@@ -138,11 +143,13 @@ function keyPressed(){
 
   // React to key press of 'space' to drop an undropped ball
   if(keyCode === 32 && !dropped[index] && balance >= incrementer && ballPrice != 0){
+    let direction = balls[index].getDx();
+    balls[index].setDx(0);
     dropped[index] = true;
     index += 1;
     balance -= ballPrice;
     
-    addBall();
+    addBall(direction);
   }
 
   if(keyCode === 187 && ballPrice <= (balance-incrementer)){
@@ -159,21 +166,21 @@ function keyPressed(){
 }
 
 // Show undropped Plinko ball following the X value of the mouse in boundaries
-function mouseMoved(){
-  if(!dropped[index] && balls[index]){
-    balls[index].setX(mouseX);
-    balls[index].drawCircle();
-    balls[index].checkBoundaries();
-  }
-}
+// function mouseMoved(){
+//   if(!dropped[index] && balls[index]){
+//     balls[index].setX(mouseX);
+//     balls[index].drawCircle();
+//     balls[index].checkBoundaries();
+//   }
+// }
 
 /*
     Functions used in specifically in sketch
 */
-function addBall(){
+function addBall(direction){
   dropped.push(false);
   prices.push(ballPrice);
-  tempBall = new PBall(balls[index-1].getX(), borderSpacing * 2, 15, [255, 0, 0]);
+  tempBall = new PBall(balls[index-1].getX(), borderSpacing * 2, 15, [255, 0, 0], undefined, direction);
   balls.push(tempBall);
   tempBall = 0;
 }
@@ -233,7 +240,7 @@ function prepareBoard(){
   }
   
   // Create the single playable ball
-  tempBall = new PBall(width / 2, borderSpacing * 2, 15, [255, 0, 0]);
+  tempBall = new PBall(width / 2, borderSpacing * 2, 15, [255, 0, 0], undefined, 5);
   balls.push(tempBall);
   tempBall = 0;
   dropped.push(false);
